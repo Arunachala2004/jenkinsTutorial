@@ -12,22 +12,19 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo '🚀 Deploying HTML files...'
-                sh 'mkdir -p ~/jenkins-demo-deploy'
-                sh 'cp *.html ~/jenkins-demo-deploy/'
+                // Use Windows commands instead of Unix ones
+                bat '''
+                if not exist deploy mkdir deploy
+                xcopy /E /I /Y * deploy
+                '''
             }
         }
 
         stage('Verify') {
             steps {
-                echo '🔍 Checking deployment folder...'
-                sh 'ls -l ~/jenkins-demo-deploy'
+                echo '✅ Deployment complete! Files copied to deploy folder.'
+                bat 'dir deploy'
             }
-        }
-    }
-
-    post {
-        success {
-            echo '✅ Deployment successful! Open ~/jenkins-demo-deploy/index.html to view it.'
         }
     }
 }
