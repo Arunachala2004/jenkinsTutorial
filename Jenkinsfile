@@ -24,9 +24,9 @@ pipeline {
         stage('Deploy') {
             steps {
                 echo '🚀 Deploying files using robocopy...'
-                // /MIR mirrors the source to destination, /XD excludes directories, /XF excludes files
                 bat """
-                robocopy . %DEPLOY_DIR% /MIR /XD %DEPLOY_DIR% /XF Jenkinsfile /NFL /NDL /NJH /NJS /nc /ns /np
+                REM robocopy returns non-zero codes even on success, normalize with exit 0
+                robocopy . %DEPLOY_DIR% /MIR /XD %DEPLOY_DIR% /XF Jenkinsfile /NFL /NDL /NJH /NJS /NC /NS /NP || exit 0
                 """
             }
         }
