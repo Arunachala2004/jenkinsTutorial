@@ -58,7 +58,7 @@ pipeline {
             publishHTML([allowMissing: false,
                          alwaysLinkToLastBuild: true,
                          keepAll: true,
-                         reportDir: DEPLOY_DIR,
+                         reportDir: DEPLOY_FOLDER,
                          reportFiles: 'index.html',
                          reportName: 'HTML Deployment'])
             
