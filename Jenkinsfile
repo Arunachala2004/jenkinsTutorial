@@ -23,12 +23,10 @@ pipeline {
 
         stage('Deploy') {
             steps {
-                echo '🚀 Deploying HTML files...'
-                // Copy all files/folders except the deploy folder itself
+                echo '🚀 Deploying files using robocopy...'
+                // /MIR mirrors the source to destination, /XD excludes directories, /XF excludes files
                 bat """
-                for %%F in (*) do (
-                    if /I not "%%F"=="%DEPLOY_DIR%" xcopy "%%F" "%DEPLOY_DIR%" /E /I /Y
-                )
+                robocopy . %DEPLOY_DIR% /MIR /XD %DEPLOY_DIR% /XF Jenkinsfile /NFL /NDL /NJH /NJS /nc /ns /np
                 """
             }
         }
