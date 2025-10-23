@@ -50,6 +50,13 @@ pipeline {
     post {
         success {
             echo '✅ Pipeline completed successfully!'
+            // Publish HTML report
+            publishHTML([allowMissing: false,
+                         alwaysLinkToLastBuild: true,
+                         keepAll: true,
+                         reportDir: DEPLOY_DIR,
+                         reportFiles: 'index.html',
+                         reportName: 'HTML Deployment'])
         }
         failure {
             echo '❌ Pipeline failed!'
