@@ -1,30 +1,60 @@
 pipeline {
     agent any
 
+    environment {
+        DEPLOY_DIR = 'deploy'
+    }
+
     stages {
-        stage('Checkout') {
+        stage('Checkout SCM') {
             steps {
-                echo '📦 Cloning repository...'
                 checkout scm
+            }
+        }
+
+        stage('Prepare Deploy Folder') {
+            steps {
+                echo '🗂️ Preparing deploy folder...'
+                bat """
+                if not exist %DEPLOY_DIR% mkdir %DEPLOY_DIR%
+                """
             }
         }
 
         stage('Deploy') {
             steps {
                 echo '🚀 Deploying HTML files...'
-                // Use Windows commands instead of Unix ones
-                bat '''
-                if not exist deploy mkdir deploy
-                xcopy /E /I /Y * deploy
-                '''
+                // Copy all files/folders except the deploy folder itself
+                bat """
+                for %%F in (*) do (
+                    if /I not "%%F"=="%DEPLOY_DIR%" xcopy "%%F" "%DEPLOY_DIR%" /E /I /Y
+                )
+                """
             }
         }
 
         stage('Verify') {
             steps {
-                echo '✅ Deployment complete! Files copied to deploy folder.'
-                bat 'dir deploy'
+                echo '🔍 Verifying deployment...'
+                bat """
+                if exist %DEPLOY_DIR% (
+                    echo Deployment folder exists.
+                    dir %DEPLOY_DIR%
+                ) else (
+                    echo Deployment failed!
+                    exit /b 1
+                )
+                """
             }
+        }
+    }
+
+    post {
+        success {
+            echo '✅ Pipeline completed successfully!'
+        }
+        failure {
+            echo '❌ Pipeline failed!'
         }
     }
 }
