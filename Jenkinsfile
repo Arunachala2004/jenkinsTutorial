@@ -2,42 +2,47 @@ pipeline {
     agent any
 
     environment {
-        DEPLOY_DIR = 'deploy'
+        DEPLOY_FOLDER = 'deploy'
+    }
+
+    triggers {
+        pollSCM('H * * * * *') // Poll GitHub every 1 minute
     }
 
     stages {
         stage('Checkout SCM') {
             steps {
+                echo "📥 Checking out repository..."
                 checkout scm
             }
         }
 
         stage('Prepare Deploy Folder') {
             steps {
-                echo '🗂️ Preparing deploy folder...'
+                echo "🧹 Preparing deploy folder..."
                 bat """
-                if not exist %DEPLOY_DIR% mkdir %DEPLOY_DIR%
+                if not exist %DEPLOY_FOLDER% mkdir %DEPLOY_FOLDER%
                 """
             }
         }
 
         stage('Deploy') {
             steps {
-                echo '🚀 Deploying files using robocopy...'
+                echo "🚀 Deploying files using robocopy..."
                 bat """
                 REM robocopy returns non-zero codes even on success, normalize with exit 0
-                robocopy . %DEPLOY_DIR% /MIR /XD %DEPLOY_DIR% /XF Jenkinsfile /NFL /NDL /NJH /NJS /NC /NS /NP || exit 0
+                robocopy . %DEPLOY_FOLDER% /MIR /XD %DEPLOY_FOLDER% /XF Jenkinsfile /NFL /NDL /NJH /NJS /NC /NS /NP || exit 0
                 """
             }
         }
 
         stage('Verify') {
             steps {
-                echo '🔍 Verifying deployment...'
+                echo "🔍 Verifying deployment..."
                 bat """
-                if exist %DEPLOY_DIR% (
+                if exist %DEPLOY_FOLDER% (
                     echo Deployment folder exists.
-                    dir %DEPLOY_DIR%
+                    dir %DEPLOY_FOLDER%
                 ) else (
                     echo Deployment failed!
                     exit /b 1
@@ -49,17 +54,17 @@ pipeline {
 
     post {
         success {
-            echo '✅ Pipeline completed successfully!'
-            // Publish HTML report
+            echo "✅ Pipeline completed successfully!"
             publishHTML([allowMissing: false,
                          alwaysLinkToLastBuild: true,
                          keepAll: true,
                          reportDir: DEPLOY_DIR,
                          reportFiles: 'index.html',
                          reportName: 'HTML Deployment'])
+            
         }
         failure {
-            echo '❌ Pipeline failed!'
+            echo "❌ Pipeline failed!"
         }
     }
 }
